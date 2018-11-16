@@ -16,33 +16,38 @@
 </template>
 
 <script>
+import db from '@/firebase/init';
+
 export default {
   name: 'Index',
   data () {
     return {
-      smoothies: [
-        { title: 'Ninja Brew', 
-          slug: 'ninja-brew', 
-          ingredients: ['bananas', 'coffee', 'milk'], 
-          id: '1'},
-        { title: 'Morning Mood', 
-          slug: 'morning-mood', 
-          ingredients: ['mango', 'lime', 'juice'], 
-          id: '2'},
-        { title: 'Ugly Franky', 
-          slug: 'ugly-franky', 
-          ingredients: ['avocado', 'apple', 'milk'], 
-          id: '3'}    
-         //slug: une partie de l'URL
-      ]
+      smoothies: []
     }
   },
   methods: {
     deleteSmoothie(id) {
-      this.smoothies = this.smoothies.filter(smoothie => {
-        return smoothie.id != id
-      })
+      //demete doc from firestore
+      //doc pour référencer un doc particulier
+      db.collection('smoothies').doc(id).delete()
+        .then(() => {
+          this.smoothies = this.smoothies.filter(smoothie => {
+            return smoothie.id != id
+          })
+        })
+      //deux étapes: supprimer sur firestore, puis localement.
     }
+  },
+  created () {
+    //fetch data from the firestore
+    db.collection('smoothies').get()
+      .then(snapshot => {
+        snapshot.forEach(doc => {
+          let smoothie = doc.data()
+          smoothie.id = doc.id
+          this.smoothies.push(smoothie)
+        })
+      })
   }
 }
 </script>
